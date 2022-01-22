@@ -37,35 +37,35 @@ contract KCG is ERC721A, Ownable {
     mapping(address => uint256) public whitelistMintedAmount;
     mapping(address => uint256) public raffleMintedAmount;
 
-    // events
+    // ===== Events =====
     event Mint(address indexed owner, uint256 amount);
 
-    // constructor
+    // ===== Constructor =====
     constructor() ERC721A("Kitty Crypto Gang", "KCG", 300) {}
 
-    // dev mint
+    // ===== Dev mint =====
     function ownerMintFromReserved(address to, uint256 amount)
         public
         onlyOwner
     {
-        require(amount <= reservedSize, "minting amount exceed reserved size");
+        require(amount <= reservedSize, "Minting amount exceeds reserved size");
         reservedSize = reservedSize - amount;
         _mintWithoutValidation(to, amount);
     }
 
-    // whitelist mint
+    // ===== Whitelist mint =====
     function whitelistMint(bytes32[] memory proof) external payable {
-        require(!whitelistMintPaused, "whitelist mint paused");
-        require(isAddressWhitelisted(proof, msg.sender), "not eligible");
+        require(!whitelistMintPaused, "Whitelist mint is paused");
+        require(isAddressWhitelisted(proof, msg.sender), "You are not eligible for a whitelist mint");
 
         uint256 amount = _getMintAmount(msg.value);
 
         require(
             whitelistMintedAmount[msg.sender] + amount <= maxItemsPerWallet,
-            "exceed allowance per wallet"
+            "Minting amount exceeds allowance per wallet"
         );
 
-        require(whitelistMintMaxSupply >= amount, "whitelist mint sold out");
+        require(whitelistMintMaxSupply >= amount, "Whitelist mint is sold out");
 
         whitelistMintMaxSupply = whitelistMintMaxSupply - amount;
 
@@ -74,16 +74,16 @@ contract KCG is ERC721A, Ownable {
         _mintWithoutValidation(msg.sender, amount);
     }
 
-    // raffle mint
+    // ===== Raffle mint =====
     function raffleMint(bytes32[] memory proof) external payable {
-        require(!raffleMintPaused, "raffle mint paused");
-        require(isAddressOnRafflelist(proof, msg.sender), "not eligible");
+        require(!raffleMintPaused, "Raffle mint is paused");
+        require(isAddressOnRafflelist(proof, msg.sender), "You are not eligible for a raffle mint");
 
         uint256 amount = _getMintAmount(msg.value);
 
         require(
             raffleMintedAmount[msg.sender] + amount <= maxItemsPerWallet,
-            "exceed allowance per wallet"
+            "Minting amount exceeds allowance per wallet"
         );
 
         raffleMintedAmount[msg.sender] += amount;
@@ -91,33 +91,33 @@ contract KCG is ERC721A, Ownable {
         _mintWithoutValidation(msg.sender, amount);
     }
 
-    // public mint
+    // ===== Public mint =====
     function publicMint() external payable {
-        require(!publicMintPaused, "public mint paused");
+        require(!publicMintPaused, "Public mint is paused");
 
         uint256 amount = _getMintAmount(msg.value);
 
-        require(amount <= maxItemsPerTx, "exceed allowance per tx");
+        require(amount <= maxItemsPerTx, "Minting amount exceeds allowance per tx");
 
         _mintWithoutValidation(msg.sender, amount);
     }
 
-    // helper
+    // ===== Helper =====
     function _getMintAmount(uint256 value) internal view returns (uint256) {
         uint256 remainder = value % mintPrice;
-        require(remainder == 0, "send a divisible amount of eth");
+        require(remainder == 0, "Send a divisible amount of eth");
 
         uint256 amount = value / mintPrice;
-        require(amount > 0, "amount to mint is 0");
+        require(amount > 0, "Amount to mint is 0");
         require(
             (totalSupply() + amount) <= collectionSize - reservedSize,
-            "sold out"
+            "Sold out!"
         );
         return amount;
     }
 
     function _mintWithoutValidation(address to, uint256 amount) internal {
-        require((totalSupply() + amount) <= collectionSize, "sold out");
+        require((totalSupply() + amount) <= collectionSize, "Sold out!");
         _safeMint(to, amount);
         emit Mint(to, amount);
     }
@@ -146,7 +146,7 @@ contract KCG is ERC721A, Ownable {
         return proof.verify(merkleRoot, keccak256(abi.encodePacked(_address)));
     }
 
-    // setter (owner only)
+    // ===== Setter (owner only) =====
     function setReservedSize(uint256 _reservedSize) public onlyOwner {
         reservedSize = _reservedSize;
     }
@@ -203,7 +203,7 @@ contract KCG is ERC721A, Ownable {
         baseTokenURI = _baseTokenURI;
     }
 
-    // withdraws to owner
+    // ===== Withdraws to owner =====
     function withdraw(uint256 amount) external onlyOwner {
         require(amount <= address(this).balance, "Exceed balance");
         (bool success, ) = address(this.owner()).call{value: amount}("");
@@ -216,7 +216,7 @@ contract KCG is ERC721A, Ownable {
         require(success, "Failed to send ether");
     }
 
-    // view
+    // ===== View =====
     function tokenURI(uint256 tokenId)
         public
         view
