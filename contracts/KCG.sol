@@ -37,9 +37,6 @@ contract KCG is ERC721A, Ownable {
     mapping(address => uint256) public whitelistMintedAmount;
     mapping(address => uint256) public raffleMintedAmount;
 
-    // ===== Events =====
-    event Mint(address indexed owner, uint256 amount);
-
     // ===== Constructor =====
     constructor() ERC721A("Kitty Crypto Gang", "KCG", 10) {}
 
@@ -49,7 +46,7 @@ contract KCG is ERC721A, Ownable {
         require((totalSupply() + amount) <= collectionSize, "Sold out!");
         require(
             amount % maxBatchSize == 0,
-            "can only mint a multiple of the maxBatchSize"
+            "Can only mint a multiple of the maxBatchSize"
         );
         uint256 numChunks = amount / maxBatchSize;
         for (uint256 i = 0; i < numChunks; i++) {
@@ -132,7 +129,6 @@ contract KCG is ERC721A, Ownable {
     function _mintWithoutValidation(address to, uint256 amount) internal {
         require((totalSupply() + amount) <= collectionSize, "Sold out!");
         _safeMint(to, amount);
-        emit Mint(to, amount);
     }
 
     function isAddressWhitelisted(bytes32[] memory proof, address _address)
