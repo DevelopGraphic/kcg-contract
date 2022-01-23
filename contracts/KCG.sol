@@ -18,7 +18,7 @@ contract KCG is ERC721A, Ownable {
     using Address for address;
     using MerkleProof for bytes32[];
 
-    // variables
+    // ===== Variables =====
     string public baseTokenURI;
     uint256 public mintPrice = 0.25 ether;
     uint256 public collectionSize = 7997;
