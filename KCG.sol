@@ -41,7 +41,7 @@ contract KCG is ERC721A, Ownable {
     event Mint(address indexed owner, uint256 amount);
 
     // ===== Constructor =====
-    constructor() ERC721A("Kitty Crypto Gang", "KCG", 300) {}
+    constructor() ERC721A("Kitty Crypto Gang", "KCG", 10) {}
 
     // ===== Dev mint =====
     function ownerMintFromReserved(address to, uint256 amount)
@@ -54,9 +54,12 @@ contract KCG is ERC721A, Ownable {
     }
 
     // ===== Whitelist mint =====
-    function whitelistMint(bytes32[] memory proof) external payable {
+    function kittyMint(bytes32[] memory proof) external payable {
         require(!whitelistMintPaused, "Whitelist mint is paused");
-        require(isAddressWhitelisted(proof, msg.sender), "You are not eligible for a whitelist mint");
+        require(
+            isAddressWhitelisted(proof, msg.sender),
+            "You are not eligible for a whitelist mint"
+        );
 
         uint256 amount = _getMintAmount(msg.value);
 
@@ -77,7 +80,10 @@ contract KCG is ERC721A, Ownable {
     // ===== Raffle mint =====
     function raffleMint(bytes32[] memory proof) external payable {
         require(!raffleMintPaused, "Raffle mint is paused");
-        require(isAddressOnRafflelist(proof, msg.sender), "You are not eligible for a raffle mint");
+        require(
+            isAddressOnRafflelist(proof, msg.sender),
+            "You are not eligible for a raffle mint"
+        );
 
         uint256 amount = _getMintAmount(msg.value);
 
@@ -97,7 +103,10 @@ contract KCG is ERC721A, Ownable {
 
         uint256 amount = _getMintAmount(msg.value);
 
-        require(amount <= maxItemsPerTx, "Minting amount exceeds allowance per tx");
+        require(
+            amount <= maxItemsPerTx,
+            "Minting amount exceeds allowance per tx"
+        );
 
         _mintWithoutValidation(msg.sender, amount);
     }
@@ -203,16 +212,9 @@ contract KCG is ERC721A, Ownable {
         baseTokenURI = _baseTokenURI;
     }
 
-    // ===== Withdraws to owner =====
-    function withdraw(uint256 amount) external onlyOwner {
-        require(amount <= address(this).balance, "Exceed balance");
-        (bool success, ) = address(this.owner()).call{value: amount}("");
-        require(success, "Failed to send ether");
-    }
-
+    // ===== Withdraw to owner =====
     function withdrawAll() external onlyOwner {
-        uint256 amount = address(this).balance;
-        (bool success, ) = address(this.owner()).call{value: amount}("");
+        (bool success, ) = msg.sender.call{value: address(this).balance}("");
         require(success, "Failed to send ether");
     }
 
