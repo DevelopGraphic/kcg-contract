@@ -44,13 +44,17 @@ contract KCG is ERC721A, Ownable {
     constructor() ERC721A("Kitty Crypto Gang", "KCG", 10) {}
 
     // ===== Dev mint =====
-    function ownerMintFromReserved(address to, uint256 amount)
-        public
-        onlyOwner
-    {
+    function devMint(uint256 amount) external onlyOwner {
         require(amount <= reservedSize, "Minting amount exceeds reserved size");
-        reservedSize = reservedSize - amount;
-        _mintWithoutValidation(to, amount);
+        require((totalSupply() + amount) <= collectionSize, "Sold out!");
+        require(
+            amount % maxBatchSize == 0,
+            "can only mint a multiple of the maxBatchSize"
+        );
+        uint256 numChunks = amount / maxBatchSize;
+        for (uint256 i = 0; i < numChunks; i++) {
+            _safeMint(msg.sender, maxBatchSize);
+        }
     }
 
     // ===== Whitelist mint =====
@@ -156,55 +160,55 @@ contract KCG is ERC721A, Ownable {
     }
 
     // ===== Setter (owner only) =====
-    function setReservedSize(uint256 _reservedSize) public onlyOwner {
+    function setReservedSize(uint256 _reservedSize) external onlyOwner {
         reservedSize = _reservedSize;
     }
 
-    function setPublicMintPaused(bool _publicMintPaused) public onlyOwner {
+    function setPublicMintPaused(bool _publicMintPaused) external onlyOwner {
         publicMintPaused = _publicMintPaused;
     }
 
-    function setRaffleMintPaused(bool _raffleMintPaused) public onlyOwner {
+    function setRaffleMintPaused(bool _raffleMintPaused) external onlyOwner {
         raffleMintPaused = _raffleMintPaused;
     }
 
     function setWhitelistMintPaused(bool _whitelistMintPaused)
-        public
+        external
         onlyOwner
     {
         whitelistMintPaused = _whitelistMintPaused;
     }
 
     function setWhitelistMintMaxSupply(uint256 _whitelistMintMaxSupply)
-        public
+        external
         onlyOwner
     {
         whitelistMintMaxSupply = _whitelistMintMaxSupply;
     }
 
     function setWhitelistMintMerkleRoot(bytes32 _whitelistMerkleRoot)
-        public
+        external
         onlyOwner
     {
         whitelistMerkleRoot = _whitelistMerkleRoot;
     }
 
     function setRaffleMintMerkleRoot(bytes32 _rafflelistMerkleRoot)
-        public
+        external
         onlyOwner
     {
         rafflelistMerkleRoot = _rafflelistMerkleRoot;
     }
 
-    function setMintPrice(uint256 _mintPrice) public onlyOwner {
+    function setMintPrice(uint256 _mintPrice) external onlyOwner {
         mintPrice = _mintPrice;
     }
 
-    function setMaxItemsPerTx(uint256 _maxItemsPerTx) public onlyOwner {
+    function setMaxItemsPerTx(uint256 _maxItemsPerTx) external onlyOwner {
         maxItemsPerTx = _maxItemsPerTx;
     }
 
-    function setMaxItemsPerWallet(uint256 _maxItemsPerWallet) public onlyOwner {
+    function setMaxItemsPerWallet(uint256 _maxItemsPerWallet) external onlyOwner {
         maxItemsPerWallet = _maxItemsPerWallet;
     }
 
