@@ -43,7 +43,7 @@ contract KCG is ERC721A, Ownable, ReentrancyGuard {
 
     // ===== Modifier =====
     modifier onlySender {
-        require(msg.sender == tx.origin, "Caller is not origin");
+        require(msg.sender == tx.origin);
         _;
     }
 
