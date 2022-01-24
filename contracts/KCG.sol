@@ -40,8 +40,14 @@ contract KCG is ERC721A, Ownable {
     // ===== Constructor =====
     constructor() ERC721A("Kitty Crypto Gang", "KCG", 10) {}
 
+    // ===== Modifier =====
+    modifier onlySender {
+        require(msg.sender == tx.origin);
+        _;
+    }
+
     // ===== Dev mint =====
-    function devMint(uint256 amount) external onlyOwner {
+    function devMint(uint256 amount) external onlySender onlyOwner {
         require(amount <= reservedSize, "Minting amount exceeds reserved size");
         require((totalSupply() + amount) <= collectionSize, "Sold out!");
         require(
@@ -55,7 +61,7 @@ contract KCG is ERC721A, Ownable {
     }
 
     // ===== Whitelist mint =====
-    function kittyMint(bytes32[] memory proof) external payable {
+    function kittyMint(bytes32[] memory proof) external payable onlySender {
         require(!whitelistMintPaused, "Whitelist mint is paused");
         require(
             isAddressWhitelisted(proof, msg.sender),
@@ -79,7 +85,7 @@ contract KCG is ERC721A, Ownable {
     }
 
     // ===== Raffle mint =====
-    function raffleMint(bytes32[] memory proof) external payable {
+    function raffleMint(bytes32[] memory proof) external payable onlySender {
         require(!raffleMintPaused, "Raffle mint is paused");
         require(
             isAddressOnRafflelist(proof, msg.sender),
@@ -99,7 +105,7 @@ contract KCG is ERC721A, Ownable {
     }
 
     // ===== Public mint =====
-    function publicMint() external payable {
+    function publicMint() external payable onlySender {
         require(!publicMintPaused, "Public mint is paused");
 
         uint256 amount = _getMintAmount(msg.value);
@@ -213,7 +219,7 @@ contract KCG is ERC721A, Ownable {
     }
 
     // ===== Withdraw to owner =====
-    function withdrawAll() external onlyOwner {
+    function withdrawAll() external onlyOwner onlySender {
         (bool success, ) = msg.sender.call{value: address(this).balance}("");
         require(success, "Failed to send ether");
     }
