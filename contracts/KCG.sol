@@ -62,7 +62,7 @@ contract KCG is ERC721A, Ownable, ReentrancyGuard {
     }
 
     // ===== Whitelist mint =====
-    function kittyMint(bytes32[] memory proof) external payable onlySender {
+    function kittyMint(bytes32[] memory proof) external payable onlySender nonReentrant {
         require(!whitelistMintPaused, "Whitelist mint is paused");
         require(
             isAddressWhitelisted(proof, msg.sender),
@@ -86,7 +86,7 @@ contract KCG is ERC721A, Ownable, ReentrancyGuard {
     }
 
     // ===== Raffle mint =====
-    function raffleMint(bytes32[] memory proof) external payable onlySender {
+    function raffleMint(bytes32[] memory proof) external payable onlySender nonReentrant {
         require(!raffleMintPaused, "Raffle mint is paused");
         require(
             isAddressOnRafflelist(proof, msg.sender),
@@ -106,7 +106,7 @@ contract KCG is ERC721A, Ownable, ReentrancyGuard {
     }
 
     // ===== Public mint =====
-    function publicMint() external payable onlySender {
+    function publicMint() external payable onlySender nonReentrant {
         require(!publicMintPaused, "Public mint is paused");
 
         uint256 amount = _getMintAmount(msg.value);
