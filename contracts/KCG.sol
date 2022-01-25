@@ -106,7 +106,7 @@ contract KCG is ERC721A, Ownable, ReentrancyGuard {
     }
 
     // ===== Public mint =====
-    function publicMint() external payable onlySender {
+    function publicMint() external payable onlySender nonReentrant {
         require(!publicMintPaused, "Public mint is paused");
 
         uint256 amount = _getMintAmount(msg.value);
