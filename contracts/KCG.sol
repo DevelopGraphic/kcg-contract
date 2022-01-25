@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.2;
+pragma solidity 0.8.7;
 
 // @title:      Kitty Crypto Gang
 // @twitter:    https://twitter.com/KittyCryptoGang
@@ -12,9 +12,10 @@ pragma solidity ^0.8.2;
 
 import "./ERC721A.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {MerkleProof} from "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 
-contract KCG is ERC721A, Ownable {
+contract KCG is ERC721A, Ownable, ReentrancyGuard {
     using Address for address;
     using MerkleProof for bytes32[];
 
@@ -40,8 +41,14 @@ contract KCG is ERC721A, Ownable {
     // ===== Constructor =====
     constructor() ERC721A("Kitty Crypto Gang", "KCG", 10) {}
 
+    // ===== Modifier =====
+    modifier onlySender {
+        require(msg.sender == tx.origin);
+        _;
+    }
+
     // ===== Dev mint =====
-    function devMint(uint256 amount) external onlyOwner {
+    function devMint(uint256 amount) external onlySender onlyOwner {
         require(amount <= reservedSize, "Minting amount exceeds reserved size");
         require((totalSupply() + amount) <= collectionSize, "Sold out!");
         require(
@@ -55,7 +62,7 @@ contract KCG is ERC721A, Ownable {
     }
 
     // ===== Whitelist mint =====
-    function kittyMint(bytes32[] memory proof) external payable {
+    function kittyMint(bytes32[] memory proof) external payable onlySender {
         require(!whitelistMintPaused, "Whitelist mint is paused");
         require(
             isAddressWhitelisted(proof, msg.sender),
@@ -79,7 +86,7 @@ contract KCG is ERC721A, Ownable {
     }
 
     // ===== Raffle mint =====
-    function raffleMint(bytes32[] memory proof) external payable {
+    function raffleMint(bytes32[] memory proof) external payable onlySender {
         require(!raffleMintPaused, "Raffle mint is paused");
         require(
             isAddressOnRafflelist(proof, msg.sender),
@@ -99,7 +106,7 @@ contract KCG is ERC721A, Ownable {
     }
 
     // ===== Public mint =====
-    function publicMint() external payable {
+    function publicMint() external payable onlySender {
         require(!publicMintPaused, "Public mint is paused");
 
         uint256 amount = _getMintAmount(msg.value);
@@ -213,7 +220,7 @@ contract KCG is ERC721A, Ownable {
     }
 
     // ===== Withdraw to owner =====
-    function withdrawAll() external onlyOwner {
+    function withdrawAll() external onlyOwner onlySender nonReentrant {
         (bool success, ) = msg.sender.call{value: address(this).balance}("");
         require(success, "Failed to send ether");
     }
@@ -227,5 +234,20 @@ contract KCG is ERC721A, Ownable {
     {
         return
             string(abi.encodePacked(baseTokenURI, Strings.toString(tokenId)));
+    }
+
+    function walletOfOwner(address address_) public virtual view returns (uint256[] memory) {
+        uint256 _balance = balanceOf(address_);
+        uint256[] memory _tokens = new uint256[] (_balance);
+        uint256 _index;
+        uint256 _loopThrough = totalSupply();
+        for (uint256 i = 0; i < _loopThrough; i++) {
+            bool _exists = _exists(i);
+            if (_exists) {
+                if (ownerOf(i) == address_) { _tokens[_index] = i; _index++; }
+            }
+            else if (!_exists && _tokens[_balance - 1] == 0) { _loopThrough++; }
+        }
+        return _tokens;
     }
 }
