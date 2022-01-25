@@ -48,9 +48,9 @@ contract KCG is ERC721A, Ownable, ReentrancyGuard {
     }
 
     // ===== Dev mint =====
-    function devMint(uint256 amount) external onlySender onlyOwner {
-        require(amount <= reservedSize, "Minting amount exceeds reserved size");
-        require((totalSupply() + amount) <= collectionSize, "Sold out!");
+    function devMint(uint256 amount) external onlySender onlyOwner nonReentrant {
+        require(amount <= reservedSize, "Amount exceeds reserved size");
+        require((totalSupply() + amount) <= collectionSize, "Sold out");
         require(
             amount % maxBatchSize == 0,
             "Can only mint a multiple of the maxBatchSize"
@@ -62,18 +62,18 @@ contract KCG is ERC721A, Ownable, ReentrancyGuard {
     }
 
     // ===== Whitelist mint =====
-    function kittyMint(bytes32[] memory proof) external payable onlySender {
+    function kittyMint(bytes32[] memory proof) external payable onlySender nonReentrant {
         require(!whitelistMintPaused, "Whitelist mint is paused");
         require(
             isAddressWhitelisted(proof, msg.sender),
-            "You are not eligible for a whitelist mint"
+            "Not eligible for whitelist mint"
         );
 
         uint256 amount = _getMintAmount(msg.value);
 
         require(
             whitelistMintedAmount[msg.sender] + amount <= maxItemsPerWallet,
-            "Minting amount exceeds allowance per wallet"
+            "Amount exceeds allowance per wallet"
         );
 
         require(whitelistMintMaxSupply >= amount, "Whitelist mint is sold out");
@@ -86,18 +86,18 @@ contract KCG is ERC721A, Ownable, ReentrancyGuard {
     }
 
     // ===== Raffle mint =====
-    function raffleMint(bytes32[] memory proof) external payable onlySender {
+    function raffleMint(bytes32[] memory proof) external payable onlySender nonReentrant {
         require(!raffleMintPaused, "Raffle mint is paused");
         require(
             isAddressOnRafflelist(proof, msg.sender),
-            "You are not eligible for a raffle mint"
+            "Not eligible for raffle mint"
         );
 
         uint256 amount = _getMintAmount(msg.value);
 
         require(
             raffleMintedAmount[msg.sender] + amount <= maxItemsPerWallet,
-            "Minting amount exceeds allowance per wallet"
+            "Amount exceeds allowance per wallet"
         );
 
         raffleMintedAmount[msg.sender] += amount;
@@ -113,7 +113,7 @@ contract KCG is ERC721A, Ownable, ReentrancyGuard {
 
         require(
             amount <= maxItemsPerTx,
-            "Minting amount exceeds allowance per tx"
+            "Amount exceeds allowance per tx"
         );
 
         _mintWithoutValidation(msg.sender, amount);
@@ -128,13 +128,13 @@ contract KCG is ERC721A, Ownable, ReentrancyGuard {
         require(amount > 0, "Amount to mint is 0");
         require(
             (totalSupply() + amount) <= collectionSize - reservedSize,
-            "Sold out!"
+            "Sold out"
         );
         return amount;
     }
 
     function _mintWithoutValidation(address to, uint256 amount) internal {
-        require((totalSupply() + amount) <= collectionSize, "Sold out!");
+        require((totalSupply() + amount) <= collectionSize, "Sold out");
         _safeMint(to, amount);
     }
 
