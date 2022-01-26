@@ -42,8 +42,12 @@ contract KCG is ERC721A, Ownable, ReentrancyGuard {
     constructor() ERC721A("Kitty Crypto Gang", "KCG", 10) {}
 
     // ===== Modifier =====
-    modifier onlySender {
+    function _onlySender() private view {
         require(msg.sender == tx.origin);
+    }
+
+    modifier onlySender {
+        _onlySender();
         _;
     }
 
